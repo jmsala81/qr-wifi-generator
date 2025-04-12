@@ -1,0 +1,18 @@
+# Ignorar fitxers del sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar directoris temporals
+node_modules/
+dist/
+tmp/
+temp/
+
+# Ignorar fitxers de logs i entorns virtuals
+*.log
+.env
+*.local
+
+# Ignorar fitxers del sistema d'edició
+*.swp
+*.swo
