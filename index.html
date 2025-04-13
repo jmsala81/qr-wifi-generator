@@ -1,69 +1,139 @@
 <!DOCTYPE html>
 <html lang="ca">
 <head>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNiIgaGVpZ2h0PSI2IiBmaWxsPSIjNEM2Ii8+PHJlY3QgeD0iMTAiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiM0QzYiLz48cmVjdCB5PSIxMCIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iIzRDNjYiLz48L3N2Zz4=">
-
   <meta charset="UTF-8">
+  <title>Generador QR Wi-Fi Local (Amb descarrega i impressió)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Codi QR Wi-Fi</title>
   <style>
+    :root {
+      --primary: #4CAF50;
+      --primary-dark: #388E3C;
+      --bg: #f0f2f5;
+      --text: #333;
+    }
+
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
-      color: #2c3e50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+      font-family: sans-serif;
+      background-color: var(--bg); color: var(--text);
+      padding: 30px;
       text-align: center;
-      padding: 40px 20px;
     }
-
-    h1 {
-      font-size: 2.8rem;
-      margin-bottom: 20px;
-    }
-
-    p {
-      font-size: 1.2rem;
-      max-width: 600px;
-      margin-bottom: 40px;
-    }
-
-    a.button {
-      display: inline-block;
-      padding: 14px 28px;
-      background-color: #4CAF50;
-      color: white;
-      text-decoration: none;
-      font-size: 1.1rem;
+    .container {
+      background: white; border: 1px solid #ddd;
+      padding: 25px;
       border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+    input, select {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 90%;
+      font-size: 1rem;
+    }
+    #qrcode {
+      margin-top: 20px;
+    }
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
       transition: background-color 0.3s ease;
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
     }
-
-    a.button:hover {
-      background-color: #388e3c;
+    button:hover {
+      background-color: var(--primary-dark);
     }
-
-    footer {
-      margin-top: 50px;
-      font-size: 0.9rem;
-      color: #777;
+    #ssid-label {
+      color: var(--primary-dark);
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Qr-2.svg/120px-Qr-2.svg.png" alt="QR icon" width="100" style="margin-bottom: 20px;" />
-  <h1>Generador de Codis QR per Wi-Fi</h1>
-  <p>
-    Aquesta aplicació et permet generar codis QR perquè convidats i dispositius es connectin a la teva xarxa Wi-Fi de forma ràpida i sense errors.
-  </p>
-  <a href="qr.html" class="button">Accedir al Generador</a>
+  <h1>Generador de Codis QR Wi-Fi</h1>
+  <div class="container">
+    <input type="text" id="ssid" placeholder="Nom de la xarxa (SSID)">
+    <input type="text" id="password" placeholder="Contrasenya">
+    <select id="encryption">
+      <option value="WPA" selected>WPA/WPA2</option>
+      <option value="WEP">WEP</option>
+      <option value="nopass">Sense contrasenya</option>
+    </select>
+    <button onclick="generateQRCode()">Generar QR</button>
+    <button onclick="downloadQRCode()">Descarregar PNG</button>
+    <button onclick="printQRCode()">Imprimir</button>
+    <div id="qrcode"></div>
+    <div id="ssid-label"></div>
+  </div>
 
-  <footer>
-    Desenvolupat per jmsala81 · Lliure sota llicència MIT
-  </footer>
+  <script src="qrcode.min.js"></script>
+  <script>
+    let currentSSID = '';
+
+    function generateQRCode() {
+      const ssid = document.getElementById("ssid").value;
+      const password = document.getElementById("password").value;
+      const encryption = document.getElementById("encryption").value;
+
+      if (!ssid) {
+        alert("Cal introduir el nom de la xarxa (SSID).");
+        return;
+      }
+
+      currentSSID = ssid;
+
+      const qrData = encryption === "nopass"
+        ? `WIFI:T:nopass;S:${ssid};;`
+        : `WIFI:T:${encryption};S:${ssid};P:${password};;`;
+
+      const qrcodeContainer = document.getElementById("qrcode");
+      qrcodeContainer.innerHTML = "";
+
+      new QRCode(qrcodeContainer, {
+        text: qrData,
+        width: 256,
+        height: 256,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById("ssid-label").textContent = `SSID: ${ssid}`;
+    }
+
+    function downloadQRCode() {
+      const qrCanvas = document.querySelector("#qrcode canvas");
+      if (!qrCanvas) {
+        alert("Primer genera un codi QR.");
+        return;
+      }
+      const link = document.createElement("a");
+      link.download = "wifi_qr.png";
+      link.href = qrCanvas.toDataURL("image/png");
+      link.click();
+    }
+
+    function printQRCode() {
+      const qrCanvas = document.querySelector("#qrcode canvas");
+      if (!qrCanvas) {
+        alert("Primer genera un codi QR.");
+        return;
+      }
+
+      const dataUrl = qrCanvas.toDataURL("image/png");
+      const printWindow = window.open('', '', 'width=600,height=700');
+      printWindow.document.write('<html><head><title>Imprimir QR</title></head><body style="text-align:center;">');
+      printWindow.document.write(`<img src="${dataUrl}" style="margin-top:40px;" />`);
+      printWindow.document.write(`<p style="font-size:18px; font-weight:bold;">SSID: ${currentSSID}</p>`);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    }
+  </script>
 </body>
 </html>
